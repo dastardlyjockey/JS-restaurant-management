@@ -5,7 +5,7 @@ import morgan from "morgan";
 import bodyParser from "body-parser";
 import cors from "cors";
 import mongoose from "mongoose";
-import { register } from "./controllers/auth_controller.js";
+import { register, login } from "./controllers/auth_controller.js";
 
 /* CONFIGURATION */
 dotenv.config();
@@ -20,6 +20,7 @@ app.use(cors());
 
 /* AUTHENTICATION AND ROUTES */
 app.post("/auth/register", register);
+app.post("/auth/login", login);
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 6001;

@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
+import jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
   try {
@@ -33,6 +34,36 @@ export const register = async (req, res) => {
     delete responseUser.password;
 
     res.status(201).json(responseUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(403)
+        .json({ error: "The email address is not registered" });
+    }
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(403).json({ error: "The password is not correct" });
+    }
+
+    const secretKey = process.env.SECRET_KEY;
+    const token = await jwt.sign(
+      { userId: user._id, firstName: user.firstName, lastName: user.lastName },
+      secretKey,
+      { expiresIn: "1h" },
+    );
+
+    const userWithoutPassword = { ...user._doc };
+    delete userWithoutPassword.password;
+
+    res.status(200).json({ token, user: userWithoutPassword });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
