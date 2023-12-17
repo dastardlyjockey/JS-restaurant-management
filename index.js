@@ -6,6 +6,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import mongoose from "mongoose";
 import { register, login } from "./controllers/auth_controller.js";
+import userRoutes from "./routes/user_routes.js";
 
 /* CONFIGURATION */
 dotenv.config();
@@ -21,6 +22,8 @@ app.use(cors());
 /* AUTHENTICATION AND ROUTES */
 app.post("/auth/register", register);
 app.post("/auth/login", login);
+
+app.use("/users", userRoutes);
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 6001;
