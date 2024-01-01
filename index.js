@@ -7,6 +7,8 @@ import cors from "cors";
 import mongoose from "mongoose";
 import { register, login } from "./controllers/auth_controller.js";
 import userRoutes from "./routes/user_routes.js";
+import menuRoutes from "./routes/menu_routes.js";
+import { verifyToken } from "./middleware/token_verification.js";
 
 /* CONFIGURATION */
 dotenv.config();
@@ -24,6 +26,8 @@ app.post("/auth/register", register);
 app.post("/auth/login", login);
 
 app.use("/users", userRoutes);
+app.use(verifyToken);
+app.use("/menus", menuRoutes);
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 6001;

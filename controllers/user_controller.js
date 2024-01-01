@@ -22,3 +22,21 @@ export const getUsers = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const getUserById = async (req, res) => {
+  try {
+    const { Id } = req.params;
+    const user = await User.findById(Id);
+
+    console.log(user);
+
+    delete user.password;
+
+    const userWithoutPassword = { ...user._doc };
+    delete userWithoutPassword.password;
+
+    res.status(200).json({ user: userWithoutPassword });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
