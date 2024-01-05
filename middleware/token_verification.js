@@ -4,7 +4,7 @@ export const verifyToken = async (req, res, next) => {
   try {
     let token = req.header("Authorization");
     if (!token) {
-      res.status(403).json({ message: "Invalid token" });
+      res.status(403).json({ error: "Authorization required" });
     }
     if (token.startsWith("Bearer ")) {
       token = token.slice(7, token.length);

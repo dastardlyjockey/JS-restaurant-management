@@ -38,7 +38,7 @@ export const createMenu = async (req, res) => {
 
 export const getMenus = async (req, res) => {
   try {
-    const allMenu = await Menu.find();
+    const allMenu = await Menu.find({});
     res.status(200).json(allMenu);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -76,11 +76,11 @@ export const updateMenu = async (req, res) => {
         const msg = "Kindly retype the date";
         return res.status(500).json({ error: msg });
       }
-    }
 
-    //assign the updated values to the updateObj
-    updateObj.startDate = new Date(menu.startDate);
-    updateObj.endDate = new Date(menu.endDate);
+      //assign the updated values to the updateObj
+      updateObj.startDate = new Date(menu.startDate);
+      updateObj.endDate = new Date(menu.endDate);
+    }
 
     if (menu.name) {
       updateObj.name = menu.name;
