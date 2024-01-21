@@ -11,28 +11,55 @@ function toFixed(num, precision) {
 }
 export const createFood = async (req, res) => {
   try {
-    const { name, foodImage, price, menuId } = req.body;
+    const { foods } = req.body;
 
-    const result = await Menu.findOne(menuId);
-    if (!result) {
-      return res.status(404).json({ error: "The menu does not exist" });
+    if (!foods) {
+      return res
+        .status(400)
+        .json({ error: "Invalid input. 'foods' should be provided" });
     }
 
-    const objectId = new mongoose.Types.ObjectId();
+    const isArray = Array.isArray(foods);
 
-    const precisionPrice = toFixed(price, 2);
+    const processedFoods = isArray ? foods : [{ ...foods }];
 
-    const food = new Food({
-      _id: objectId,
-      name,
-      price: precisionPrice,
-      foodImage,
-      menuId,
-      foodId: objectId.toHexString(),
+    const menuIds = processedFoods.map((food) => food.menuId);
+
+    //check if all the menuIds exists in the database
+    const existingMenus = await Menu.find({ menuId: { $in: menuIds } });
+    const existingMenuIds = existingMenus.map((menu) => menu.menuId);
+
+    const failedFoods = processedFoods.filter(
+      (food) => !existingMenuIds.includes(food.menuId),
+    );
+    const successfulFoods = processedFoods.filter((food) =>
+      existingMenuIds.includes(food.menuId),
+    );
+
+    if (successfulFoods.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "No valid menu found in the database" });
+    }
+
+    const objectIdArray = new Array(successfulFoods.length)
+      .fill()
+      .map(() => new mongoose.Types.ObjectId());
+
+    const foodsToSave = successfulFoods.map((food, index) => {
+      const precisionPrice = toFixed(food.price, 2);
+      return {
+        _id: objectIdArray[index],
+        name: food.name,
+        price: precisionPrice,
+        foodImage: food.foodImage,
+        menuId: food.menuId,
+        foodId: objectIdArray[index].toHexString(),
+      };
     });
 
-    const savedFood = await food.save();
-    res.status(200).json(savedFood);
+    const savedFood = await Food.insertMany(foodsToSave);
+    res.status(200).json({ Success: savedFood, Failed: failedFoods });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
