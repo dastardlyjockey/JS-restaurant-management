@@ -10,6 +10,7 @@ import userRoutes from "./routes/user_routes.js";
 import menuRoutes from "./routes/menu_routes.js";
 import foodRoutes from "./routes/food_routes.js";
 import tableRoutes from "./routes/table_routes.js";
+import orderRoutes from "./routes/order_routes.js";
 import { verifyToken } from "./middleware/token_verification.js";
 
 /* CONFIGURATION */
@@ -32,6 +33,7 @@ app.use(verifyToken);
 app.use("/menus", menuRoutes);
 app.use("/foods", foodRoutes);
 app.use("/tables", tableRoutes);
+app.use("/orders", orderRoutes);
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 6001;
