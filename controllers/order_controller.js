@@ -46,3 +46,31 @@ export const getOrderById = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const updateOrder = async (req, res) => {
+  try {
+    const order = req.body;
+    const { orderId } = req.params;
+    const filter = { orderId: orderId };
+
+    const isTableAvailable = await Table.findOne({ tableId: order.tableId });
+
+    if (!isTableAvailable) {
+      return res.status(404).json({ error: "Table is not available" });
+    }
+
+    const updateOrder = {};
+
+    if (order.orderDate) {
+      updateOrder.orderDate = order.orderDate;
+    }
+
+    updateOrder.updateAt = new Date();
+
+    const result = await Order.updateOne(filter, { $set: updateOrder });
+    const msg = `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`;
+    res.status(200).json(msg);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
