@@ -5,7 +5,7 @@ import Food from "../models/Food.js";
 function round(num) {
   return Math.round(num + Math.sign(num) * 0.5);
 }
-function toFixed(num, precision) {
+export function toFixed(num, precision) {
   const output = Math.pow(10, precision);
   return round(num * output) / output;
 }
@@ -99,7 +99,7 @@ export const getFoods = async (req, res) => {
 export const getFoodById = async (req, res) => {
   try {
     const { foodId } = req.params;
-    const result = await Food.findById(foodId);
+    const result = await Food.findById({ foodId });
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

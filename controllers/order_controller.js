@@ -2,6 +2,21 @@ import Table from "../models/Table.js";
 import mongoose from "mongoose";
 import Order from "../models/Order.js";
 
+export function orderItemOrderCreator(order) {
+  const objectId = new mongoose.Types.ObjectId();
+  const orderDate = new Date();
+  new Order({
+    _id: objectId,
+    orderDate,
+    tableId: order.tableId,
+    orderId: objectId.toHexString(),
+  })
+    .save()
+    .then((order) => {
+      return order.orderId;
+    });
+}
+
 export const createOrder = async (req, res) => {
   try {
     const { orderDate, tableId } = req.body;
