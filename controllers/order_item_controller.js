@@ -4,6 +4,114 @@ import OrderItem from "../models/OrderItem.js";
 import mongoose from "mongoose";
 import { toFixed } from "./food_controller.js";
 
+async function itemsByOrder(id) {
+  try {
+    const matchStage = { $match: { order_id: id } };
+    const lookupStage = {
+      $lookup: {
+        from: "order",
+        localField: "orderId",
+        foreignField: "orderId",
+        as: "order",
+      },
+    };
+    const unwindStage = {
+      $unwind: {
+        path: "$order",
+        preserveNullAndEmptyArrays: true,
+      },
+    };
+
+    const lookupFoodStage = {
+      $lookup: {
+        from: "food",
+        localField: "foodId",
+        foreignField: "foodId",
+        as: "food",
+      },
+    };
+    const unwindFoodStage = {
+      $unwind: {
+        path: "$food",
+        preserveNullAndEmptyArrays: true,
+      },
+    };
+
+    const lookupTableStage = {
+      $lookup: {
+        from: "table",
+        localField: "order.tableId",
+        foreignField: "tableId",
+        as: "table",
+      },
+    };
+    const unwindTableStage = {
+      $unwind: {
+        path: "$table",
+        preserveNullAndEmptyArrays: true,
+      },
+    };
+
+    //PROJECT STAGE
+    const projectStage = {
+      $project: {
+        _id: 0,
+        amount: "$food.price",
+        totalCount: 1,
+        foodName: "$food.name",
+        foodImage: "$food.foodImage",
+        tableNumber: "$table.tableNumber",
+        tableId: "$table.tableId",
+        orderId: "$order.orderId",
+        quantity: 1,
+      },
+    };
+
+    //GROUP STAGE
+    const groupStage = {
+      $group: {
+        _id: {
+          orderId: "$orderId",
+          tableId: "$tableId",
+          tableNumber: "$tableNumber",
+        },
+        paymentDue: { $sum: "$amount" },
+        totalCount: { $sum: 1 },
+        orderItems: { $push: "$$ROOT" },
+      },
+    };
+
+    //SECOND PROJECT STAGE
+    const secondProjectStage = {
+      $project: {
+        _id: 0,
+        paymentDue: 1,
+        totalCount: 1,
+        tableNumber: "$tableNumber",
+        orderItems: 1,
+      },
+    };
+
+    //MONGO AGGREGATION
+    const result = await OrderItem.aggregate([
+      matchStage,
+      lookupStage,
+      unwindStage,
+      lookupFoodStage,
+      unwindFoodStage,
+      lookupTableStage,
+      unwindTableStage,
+      projectStage,
+      groupStage,
+      secondProjectStage,
+    ]);
+
+    return result;
+  } catch (err) {
+    return err;
+  }
+}
+
 const createOrderItem = async (req, res) => {
   try {
     const { tableId, orderItems } = req.body;
@@ -47,6 +155,16 @@ export const getOrderItemById = async (req, res) => {
   try {
     const { orderItemId } = req.params;
     const result = await OrderItem.findOne({ orderItemId });
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getOrderItemsByOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const result = await itemsByOrder(orderId);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
