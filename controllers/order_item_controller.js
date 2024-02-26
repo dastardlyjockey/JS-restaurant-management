@@ -108,7 +108,9 @@ async function itemsByOrder(id) {
 
     return result;
   } catch (err) {
-    return err;
+    throw new Error(
+      "An error occurred in itemsByOrder function: " + err.message,
+    );
   }
 }
 
@@ -166,6 +168,39 @@ export const getOrderItemsByOrder = async (req, res) => {
     const { orderId } = req.params;
     const result = await itemsByOrder(orderId);
     res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateOrderItem = async (req, res) => {
+  try {
+    const orderItem = req.body;
+    const { orderItemId } = req.params;
+
+    const filter = { orderItemId: orderItemId };
+
+    const updateObj = {};
+
+    if (orderItem.unitPrice) {
+      updateObj.unitPrice = orderItem.unitPrice;
+    }
+
+    if (orderItem.quantity) {
+      updateObj.quantity = orderItem.quantity;
+    }
+
+    if (orderItem.foodId) {
+      updateObj.foodId = orderItem.foodId;
+    }
+
+    updateObj.updatedAt = new Date();
+
+    const result = await OrderItem.updateOne(filter, { $set: updateObj });
+
+    const msg = `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`;
+
+    res.status(200).json(msg);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

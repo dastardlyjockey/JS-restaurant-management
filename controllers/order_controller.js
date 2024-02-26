@@ -80,7 +80,7 @@ export const updateOrder = async (req, res) => {
       updateOrder.orderDate = order.orderDate;
     }
 
-    updateOrder.updateAt = new Date();
+    updateOrder.updatedAt = new Date();
 
     const result = await Order.updateOne(filter, { $set: updateOrder });
     const msg = `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`;
